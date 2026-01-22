@@ -26,7 +26,7 @@ router.post("/", async (req, res) => {
 
     await transporter.sendMail({
       from: `"Website Contact" <${process.env.SMTP_USER}>`,
-      to: process.env.SMTP_USER,
+      to: process.env.SMTP_USER,  // Your inbox
       replyTo: email,
       subject: "New Contact Form Submission",
       html: `<h2>New message from ${name}</h2>
@@ -37,6 +37,7 @@ router.post("/", async (req, res) => {
     });
 
     res.status(200).json({ success: true, message: "Message sent successfully" });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Server error" });
