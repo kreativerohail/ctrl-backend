@@ -19,6 +19,5 @@
     "mongoose": "^9.1.5",
     "nodemailer": "^7.0.12",
     "nodemon": "^3.1.11",
-    "@sendgrid/mail": "^7.9.0"
   }
 }
