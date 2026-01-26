@@ -12,9 +12,7 @@ router.post("/", async (req, res) => {
     const { name, email, company, message } = req.body;
 
     if (!name || !email || !message) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required fields" });
+      return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
     // 1️⃣ Save to MongoDB
@@ -25,47 +23,23 @@ router.post("/", async (req, res) => {
       console.log("Saved to MongoDB:", contact);
     } catch (dbErr) {
       console.error("MongoDB save error:", dbErr);
-      return res
-        .status(500)
-        .json({ success: false, message: "MongoDB save failed: " + dbErr.message });
+      return res.status(500).json({ success: false, message: "MongoDB save failed: " + dbErr.message });
     }
 
-    // 2️⃣ Send email only if local (development)
-    if (process.env.NODE_ENV === "development") {
-      try {
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS, // Gmail App Password
-          },
-        });
+    // 2️⃣ Attempt to send email using SMTP
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
 
-        await transporter.sendMail({
-          from: `"Website Contact" <${process.env.SMTP_USER}>`,
-          to: process.env.SMTP_USER,
-          replyTo: email,
-          subject: `New Contact Form Submission from ${name}`,
-          html: `
-            <h2>New message from ${name}</h2>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Company:</strong> ${company || "N/A"}</p>
-            <p><strong>Message:</strong></p>
-            <p>${message}</p>
-          `,
-        });
-
-        console.log("Email sent successfully via Gmail!");
-      } catch (mailErr) {
-        console.error("Nodemailer error:", mailErr);
-        return res
-          .status(500)
-          .json({ success: false, message: "Email sending failed: " + mailErr.message });
-      }
-    } else {
-      // Remote / production environment (Vercel)
-      console.log("Email sending skipped on production:");
-      console.log({
+      await transporter.sendMail({
+        from: `"Website Contact" <${process.env.SMTP_USER}>`,
         to: process.env.SMTP_USER,
         replyTo: email,
         subject: `New Contact Form Submission from ${name}`,
@@ -77,18 +51,18 @@ router.post("/", async (req, res) => {
           <p>${message}</p>
         `,
       });
+
+      console.log("Email sent successfully via Gmail SMTP!");
+    } catch (mailErr) {
+      console.error("SMTP send error (email might not be delivered):", mailErr);
     }
 
-    // 3️⃣ Success response
-    res
-      .status(200)
-      .json({ success: true, message: "Message saved successfully!" });
+    // 3️⃣ Success response (MongoDB already saved, email optional)
+    res.status(200).json({ success: true, message: "Message saved successfully!" });
 
   } catch (err) {
     console.error("Unexpected error:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Unexpected server error: " + err.message });
+    res.status(500).json({ success: false, message: "Unexpected server error: " + err.message });
   }
 });
 
