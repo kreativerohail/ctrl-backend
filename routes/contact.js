@@ -1,5 +1,5 @@
+// routes/contact.js
 import express from "express";
-import Contact from "../models/Contact.js";
 import nodemailer from "nodemailer";
 
 const router = express.Router();
@@ -14,26 +14,20 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    // ✅ Optional: Save to MongoDB
-    // const contact = new Contact({ name, email, company, message });
-    // await contact.save();
-
-    // Nodemailer using Gmail SMTP with SSL
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST, // smtp.gmail.com
-  port: 587,                    // TLS port
-  secure: false,                // false for TLS
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS, // App Password
-  },
-});
-
+    // Nodemailer using Gmail SMTP (TLS / port 587)
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST, // smtp.gmail.com
+      port: 587,
+      secure: false,               // TLS
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS, // Gmail App Password
+      },
     });
 
     await transporter.sendMail({
       from: `"Website Contact" <${process.env.SMTP_USER}>`,
-      to: process.env.SMTP_USER,    // receive email in the same Gmail
+      to: process.env.SMTP_USER,  // receive email in the same Gmail
       replyTo: email,
       subject: `New Contact Form Submission from ${name}`,
       html: `
