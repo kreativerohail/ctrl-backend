@@ -20,11 +20,11 @@ router.post("/", async (req, res) => {
     const contact = new Contact({ name, email, company, message });
     await contact.save();
 
-    // Send email (Gmail recommended)
+    // Send email (secure: false, port 587)
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false, // 🔹 false for STARTTLS
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
